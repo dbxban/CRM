@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       ">
+    <!--=====================================-->
+        <!--IoC的组件扫描器-->
+        <context:component-scan base-package="cn.wolfcode.crm"/>
+
+        <!--引入属性占位符-->
+        <context:property-placeholder location="classpath:db.properties"
+                                      system-properties-mode="NEVER"/>
+
+        <!--配置连接池-->
+        <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource"
+              init-method="init" destroy-method="close">
+            <property name="driverClassName" value="${jdbc.driverClassName}"/>
+            <property name="url" value="${jdbc.url}"/>
+            <property name="username" value="${jdbc.username}"/>
+            <property name="password" value="${jdbc.password}"/>
+
+
+        </bean>
+
+        <!--创建SqlSessionFactory的对象-->
+        <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+            <!--连接池-->
+            <property name="dataSource" ref="dataSource"/>
+            <!--关联映射文件-->
+            <property name="mapperLocations" value="classpath:cn/wolfcode/crm/mapper/*Mapper.xml"/>
+            <property name="typeAliasesPackage" value="cn.wolfcode.crm.domain"/>
+            <!--<property name="configLocation" value="classpath:mybatis.xml"/>-->
+        </bean>
+
+    <!--=====================================-->
+
+        <!--mapper接口扫描配器配置器:作用扫描mapper接口全部创建代理对象,可以根据上下文直接引用sqlSessionFactory-->
+        <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+            <!--mapper接口所在的包-->
+            <property name="basePackage" value="cn.wolfcode.crm.mapper"/>
+        </bean>
+        <!-- AOP:3w-->
+        <!--what:做什么增强-->
+        <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+            <!--管理谁的事务-->
+            <property name="dataSource" ref="dataSource"/>
+        </bean>
+        <!--where:在哪儿做增强-->
+        <aop:config>
+            <!--where-->
+            <aop:pointcut id="pc" expression="execution(* cn.wolfcode.crm.service.*Service.*(..))"/>
+            <aop:pointcut id="logPc" expression="(execution(* cn.wolfcode.crm.service.IEmployeeService.*(..)))
+                ||(execution(* cn.wolfcode.crm.service.IRoleService.*(..)))"></aop:pointcut>
+            <aop:advisor advice-ref="txAdvice" pointcut-ref="pc"/>
+            <aop:aspect ref="systemLogUtil">
+                <aop:after method="write" pointcut-ref="logPc"></aop:after>
+            </aop:aspect>
+        </aop:config>
+        <!--when:什么时机做什么增强-->
+        <tx:advice id="txAdvice" transaction-manager="txManager">
+            <tx:attributes>
+                <tx:method name="get*" read-only="true" propagation="SUPPORTS" />
+                <tx:method name="list*" read-only="true" propagation="SUPPORTS"/>
+                <tx:method name="query*" read-only="true" propagation="SUPPORTS"/>
+                <tx:method name="select*" read-only="true" propagation="SUPPORTS"/>
+                <tx:method name="*" propagation="REQUIRED"/>
+            </tx:attributes>
+            
+        </tx:advice>
+
+    <!--=====================================-->
+
+
+
+</beans>

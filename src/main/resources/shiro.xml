@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+">
+
+    <!-- 缓存管理器 -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <!--设置配置文件-->
+        <property name="cacheManagerConfigFile" value="classpath:shiro-ehcache.xml"></property>
+    </bean>
+
+    <!--配置一个数据源-->
+    <bean id="userRealm" class="cn.wolfcode.crm.realm.UserRealm"></bean>
+
+    <!--配置安全管理器-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="realm" ref="userRealm"/>
+        <property name="cacheManager" ref="cacheManager"></property>
+    </bean>
+    <!--配置 cqlib代理 因为使用 shiro使用 qop 来扫描 -->
+
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="/login.do"></property>
+        <property name="successUrl" value="/index.do"></property>
+        <property name="filterChainDefinitions">
+            <value>
+                /html/**=anon
+                /static/**=anon
+                /login.jsp=anon
+                /favicon.ico=anon
+                /logout.do=logout
+                /**=authc
+            </value>
+        </property>
+        <property name="filters">
+            <map>
+                <entry key="authc" value-ref="myFormAuthenticationFilter"></entry>
+            </map>
+        </property>
+    </bean>
+
+    <aop:config proxy-target-class="true"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"></property>
+    </bean>
+
+</beans>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.crm.mapper.PermissionMapper">
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Permission">
+    <id column="id" property="id" />
+    <result column="name" property="name" />
+    <result column="resource" property="resource" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey">
+    delete from permission
+    where id = #{id}
+  </delete>
+  <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    insert into permission (name, resource)
+    values (#{name}, #{resource})
+  </insert>
+  <update id="updateByPrimaryKey">
+    update permission
+    set name = #{name},
+      resource = #{resource}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select id, name, resource
+    from permission
+    where id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, name, resource
+    from permission
+  </select>
+  <select id="select4Count" resultType="int">
+      select count(*) from permission
+   </select>
+
+  <select id="select4List" resultMap="BaseResultMap">
+    select id, resource, name
+    from permission
+  </select>
+  <select id="getByRoleId" resultType="cn.wolfcode.crm.domain.Permission">
+      select p.id, p.name
+      from permission p
+      left join role_permission rp on p.id = rp.permission_id
+      where role_id = #{roleId}
+  </select>
+    <select id="selectAllResources" resultType="java.lang.String">
+      select resource from permission
+    </select>
+    <select id="selectPermissionByEmpId" resultType="cn.wolfcode.crm.domain.Permission">
+       SELECT p.id, p.name, p.resource
+        from permission  p
+        join role_permission rp on p.id = rp.permission_id
+        join employee_role er on er.role_id = rp.role_id
+        where er.employee_id = #{empId}
+    </select>
+
+
+</mapper>

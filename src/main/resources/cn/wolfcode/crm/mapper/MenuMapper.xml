@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.crm.mapper.MenuMapper">
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Menu">
+    <id column="id" property="id" />
+    <result column="text" property="text" />
+    <result column="url" property="url" />
+    <association property="parent" javaType="Menu" columnPrefix="parent_">
+      <id column="id" property="id" />
+      <result column="text" property="text" />
+      <result column="url" property="url" />
+    </association>
+    <collection column="id" ofType="Menu" property="children"
+                select="cn.wolfcode.crm.mapper.MenuMapper.selectForChildById" />
+  </resultMap>
+
+  <delete id="deleteByPrimaryKey">
+    delete from menu
+    where id = #{id}
+  </delete>
+  <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    insert into menu (text, url, parent_id)
+    values (#{text}, #{url}, #{parent.id})
+  </insert>
+  <update id="updateByPrimaryKey">
+    update menu
+    set text = #{text},
+      url = #{url},
+      parent_id = #{parent.id}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select id, text, url, parent_id
+    from menu
+    where id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, text, url, parent_id
+    from menu
+  </select>
+
+    <select id="selectRootMenus" resultMap="BaseResultMap">
+       select id, text, url, parent_id
+       from menu
+       where parent_id is null
+    </select>
+
+    <select id="selectForChildById" resultMap="BaseResultMap">
+       select id, text, url, parent_id
+       from menu
+       where parent_id = #{id}
+    </select>
+  <select id="select4Count" resultType="java.lang.Integer">
+    select count(*) from menu
+  </select>
+  <select id="select4List" resultMap="BaseResultMap">
+    select child.id, child.text, child.url, child.parent_id,
+          parent.id parent_id, parent.text parent_text, parent.url parent_text
+    from menu child
+    left join menu parent on child.parent_id = parent.id
+    limit #{start}, #{rows}
+  </select>
+  <select id="selectChildMenus" resultMap="BaseResultMap">
+    select child.id, child.text, child.url, child.parent_id,
+          parent.id parent_id, parent.text parent_text, parent.url parent_text
+    from menu child
+    left join menu parent on child.parent_id = parent.id
+    where child.parent_id = #{parentId}
+  </select>
+    <select id="selectMenusByEmpId" resultType="java.lang.Long">
+      SELECT DISTINCT
+          menu_id
+      FROM
+          role_menu
+      WHERE
+          role_id IN (
+                  SELECT
+                      role_id
+                  FROM
+                      employee_role
+                  WHERE
+                      employee_id = #{empId}
+                 )
+
+    </select>
+
+
+</mapper>

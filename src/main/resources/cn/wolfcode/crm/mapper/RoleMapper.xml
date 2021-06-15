@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.wolfcode.crm.mapper.RoleMapper">
+  <resultMap id="BaseResultMap" type="cn.wolfcode.crm.domain.Role">
+    <id column="id" property="id" />
+    <result column="sn" property="sn" />
+    <result column="name" property="name" />
+  </resultMap>
+  <delete id="deleteByPrimaryKey">
+    delete from role
+    where id = #{id}
+  </delete>
+  <delete id="deletePermisionRelation">
+    delete from role_permission where role_id = #{roleId}
+  </delete>
+  <delete id="deleteMenuRelation">
+    delete from role_menu where role_id = #{roleId}
+  </delete>
+  <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+    insert into role (sn, name)
+    values (#{sn}, #{name})
+  </insert>
+
+    <insert id="insertPermissionRelation">
+      insert into role_permission values(#{roleId},#{permissionId})
+    </insert>
+    <insert id="insertMenuRelation">
+      insert into role_menu values (#{roleId}, #{menuId})
+    </insert>
+
+    <update id="updateByPrimaryKey">
+    update role
+    set sn = #{sn},
+      name = #{name}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+    select id, sn, name
+    from role
+    where id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap">
+    select id, sn, name
+    from role
+  </select>
+
+  <select id="select4Count" resultType="int">
+      select count(*) from role
+   </select>
+
+  <select id="select4List" resultMap="BaseResultMap">
+    select id, sn, name
+    from role
+  </select>
+  <select id="selectRolesByEmpId" resultMap="BaseResultMap">
+    select r.id, r.name
+    from role r
+    join employee_role er on r.id = re.role_id
+    where employee_id = #{empId}
+  </select>
+  <select id="selectMenuIdByRoleId" resultType="java.lang.Long">
+    select menu_id from role_menu where role_id = #{roleId}
+  </select>
+
+  <select id="selectRoleByEmpId" resultType="cn.wolfcode.crm.domain.Role">
+    select id, name, sn
+    from role
+    where id in (select role_id from employee_role where employee_id = #{empId})
+  </select>
+
+</mapper>
